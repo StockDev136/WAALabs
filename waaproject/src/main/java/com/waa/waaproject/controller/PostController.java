@@ -25,23 +25,23 @@ public class PostController {
     }
 
     @GetMapping("/{id}")
-    public PostDto getPostById(@PathVariable int id){
+    public PostDto getPostById(@PathVariable Long id){
         return postservice.getById(id);
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public void save(@RequestBody Post post){
+    public void save(@RequestBody PostDto post){
         postservice.save(post);
     }
 
     @DeleteMapping("/{id}")
-    public void delete(@PathVariable int id){
+    public void delete(@PathVariable Long id){
         postservice.delete(id);
     }
 
     @PutMapping("/{id}")
-    public void update(@PathVariable int id, @RequestBody PostDto post){
+    public void update(@PathVariable Long id, @RequestBody PostDto post){
         postservice.update(id, post);
     }
 }

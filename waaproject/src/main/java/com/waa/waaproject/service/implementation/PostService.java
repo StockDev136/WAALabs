@@ -10,6 +10,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class PostService implements IPostService {
@@ -26,31 +28,39 @@ public class PostService implements IPostService {
     ListMapper listMapper;
 
     public List<PostDto> getPost() {
-        return listMapper.mapList(postrepository.getPosts(), new PostDto());
+        return listMapper.mapList(postrepository.findAll(), new PostDto());
     }
 
     @Override
-    public void save(Post post) {
+    public void save(PostDto post) {
         postrepository.save(modelMapper.map(post, Post.class));
     }
 
     @Override
-    public void delete(int id) {
-        postrepository.delete(id);
+    public void delete(Long id) {
+        postrepository.deleteById(id);
     }
 
     @Override
-    public void update(int id, PostDto post) {
-        postrepository.update(id, modelMapper.map(post, Post.class));
+    public void update(Long id, PostDto post) {
+        Optional<Post> p = postrepository.findById(id);
+        if(p.isPresent()){
+            post.setId(id);
+            postrepository.save(modelMapper.map(post, Post.class));
+        }
     }
 
     @Override
-    public PostDto getById(int id) {
-        return modelMapper.map(postrepository.getPostById(id), PostDto.class);
+    public PostDto getById(Long id) {
+        Post p = postrepository.findById(id).orElse(null);
+        return modelMapper.map(p, PostDto.class);
     }
 
     @Override
     public List<PostDto> getPostByAuthor(String author) {
-        return listMapper.mapList(postrepository.getPostByAuther(author), new PostDto());
+        List<Post> p = postrepository.findAll().stream()
+                .filter(e -> e.getAuthor().contains(author))
+                .collect(Collectors.toList());
+        return listMapper.mapList(p, new PostDto());
     }
 }

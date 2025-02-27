@@ -1,16 +1,18 @@
 package com.waa.waaproject.domain;
 
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-@Data
+@Entity
 public class Post {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     long id;
     String title;
     String content;
     String author;
-
 
     public Post() {
     }

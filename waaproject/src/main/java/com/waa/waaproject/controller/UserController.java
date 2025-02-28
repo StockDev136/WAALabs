@@ -1,6 +1,7 @@
 package com.waa.waaproject.controller;
 
 
+import com.waa.waaproject.Aspect.Annotation.IExecutionTime;
 import com.waa.waaproject.domain.Comment;
 import com.waa.waaproject.domain.Post;
 import com.waa.waaproject.domain.User;
@@ -27,6 +28,7 @@ public class UserController {
         return title == null? userservice.findAll():userservice.findUsersPostByTitle(title);
     }
 
+    @IExecutionTime
     @GetMapping("/{id}")
     public UserDto getUser(@PathVariable Long id) {
         return userservice.findById(id);

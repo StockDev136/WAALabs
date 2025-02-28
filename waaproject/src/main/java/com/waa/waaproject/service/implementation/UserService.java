@@ -1,7 +1,9 @@
 package com.waa.waaproject.service.implementation;
 
+import com.waa.waaproject.domain.Comment;
 import com.waa.waaproject.domain.Post;
 import com.waa.waaproject.domain.User;
+import com.waa.waaproject.dto.CommentDto;
 import com.waa.waaproject.dto.PostDto;
 import com.waa.waaproject.dto.UserDto;
 import com.waa.waaproject.helper.ListMapper;
@@ -64,5 +66,25 @@ public class UserService implements IUserService {
     @Override
     public List<User> findUsersWithMoreThanOnePosts() {
         return listMapper.mapList(userRepository.findUsersWithMoreThanOnePosts(), new User());
+    }
+
+    @Override
+    public List<User> findUsersWithMoreThanNPosts(int n) {
+        return userRepository.findUsersWithMoreThanNPosts(n);
+    }
+
+    @Override
+    public List<UserDto> findUsersPostByTitle(String title) {
+        return listMapper.mapList(userRepository.findUsersPostByTitle(title), new UserDto());
+    }
+
+    @Override
+    public Comment findCommentByUserIdByPostIdByCommentId(Long userid, Long postid, Long commentid) {
+        return userRepository.findCommentByUserIdByPostIdByCommentId(userid, postid, commentid);
+    }
+
+    @Override
+    public Post findPostByUserIdByPostId(Long userid, Long postid) {
+        return userRepository.findPostByUserIdByPostId(userid, postid);
     }
 }

@@ -1,6 +1,7 @@
 package com.waa.waaproject.controller;
 
 
+import com.waa.waaproject.domain.Comment;
 import com.waa.waaproject.domain.Post;
 import com.waa.waaproject.domain.User;
 import com.waa.waaproject.dto.UserDto;
@@ -22,8 +23,8 @@ public class UserController {
     }
 
     @GetMapping
-    public List<UserDto> getUsers() {
-        return userservice.findAll();
+    public List<UserDto> getUsers(@RequestParam(value = "title" ,required = false) String title) {
+        return title == null? userservice.findAll():userservice.findUsersPostByTitle(title);
     }
 
     @GetMapping("/{id}")
@@ -52,7 +53,20 @@ public class UserController {
     }
 
     @GetMapping("/posts")
-    public List<User> findUsersWithMoreThanOnePosts(){
-        return userservice.findUsersWithMoreThanOnePosts();
+    public List<User> findUsersWithMoreThanOnePosts(@RequestParam(value = "numpost" ,required = false, defaultValue = "0")  int numpost){
+        return numpost == 0? userservice.findUsersWithMoreThanOnePosts():userservice.findUsersWithMoreThanNPosts(numpost);
     }
+
+    @GetMapping("/{userid}/posts/{postid}/comments/{commentsid}")
+    public Comment findCommentByUserIdByPostIdByCommentId(@PathVariable Long userid,
+                                                          @PathVariable Long postid,
+                                                          @PathVariable Long commentsid){
+        return userservice.findCommentByUserIdByPostIdByCommentId(userid, postid, commentsid);
+    }
+    @GetMapping("/{userid}/posts/{postid}")
+    public Post findPostByUserIdByPostId(@PathVariable Long userid,
+                                          @PathVariable Long postid){
+        return userservice.findPostByUserIdByPostId(userid, postid);
+    }
+
 }

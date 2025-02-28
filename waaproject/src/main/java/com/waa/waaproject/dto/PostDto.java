@@ -8,6 +8,5 @@ public class PostDto {
     String title;
     String content;
     String author;
-    Long userId;
 }
 

@@ -1,5 +1,6 @@
 package com.waa.waaproject.service.implementation;
 
+import com.waa.waaproject.domain.Comment;
 import com.waa.waaproject.domain.Post;
 import com.waa.waaproject.dto.PostDto;
 import com.waa.waaproject.helper.ListMapper;
@@ -62,5 +63,22 @@ public class PostService implements IPostService {
                 .filter(e -> e.getAuthor().contains(author))
                 .collect(Collectors.toList());
         return listMapper.mapList(p, new PostDto());
+    }
+
+    @Override
+    public void createPostComment(Long postid, Comment comment) {
+        Post p = postrepository.findById(postid).orElse(null);
+        p.getComments().add(comment);
+        postrepository.save(p);
+    }
+
+    @Override
+    public List<PostDto> getPostByTitle(String title) {
+        return listMapper.mapList(postrepository.getPostByTitle(title), new PostDto());
+    }
+
+    @Override
+    public List<PostDto> getPostByAuthorAndTitle(String author, String title) {
+        return listMapper.mapList(postrepository.findByAuthorAndTitle(author,title), new PostDto());
     }
 }

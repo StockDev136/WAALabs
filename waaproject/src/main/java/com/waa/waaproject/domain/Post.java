@@ -5,6 +5,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @Entity
 public class Post {
     @Id
@@ -13,6 +15,10 @@ public class Post {
     String title;
     String content;
     String author;
+
+    @OneToMany(cascade=CascadeType.ALL)
+    @JoinColumn(name = "postid")
+    List<Comment> comments;
 
     public Post() {
     }
@@ -54,5 +60,11 @@ public class Post {
 
     public void setAuthor(String author) {
         this.author = author;
+    }
+    public List<Comment> getComments() {
+        return comments;
+    }
+    public void setComments(List<Comment> comments) {
+        this.comments = comments;
     }
 }

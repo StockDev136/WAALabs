@@ -3,8 +3,6 @@ package com.waa.waaproject.service.implementation;
 import com.waa.waaproject.domain.Comment;
 import com.waa.waaproject.domain.Post;
 import com.waa.waaproject.domain.User;
-import com.waa.waaproject.dto.CommentDto;
-import com.waa.waaproject.dto.PostDto;
 import com.waa.waaproject.dto.UserDto;
 import com.waa.waaproject.helper.ListMapper;
 import com.waa.waaproject.repository.IUserRepository;

@@ -11,5 +11,6 @@ import java.util.List;
 public class UserDto {
     long id;
     String name;
+    String email;
     List<Post> posts;
 }

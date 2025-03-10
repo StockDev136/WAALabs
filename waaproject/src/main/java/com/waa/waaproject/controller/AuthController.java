@@ -6,6 +6,7 @@ import com.waa.waaproject.dto.LoginResponse;
 import com.waa.waaproject.dto.RefreshTokenRequest;
 import com.waa.waaproject.service.IAuthService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -25,19 +26,15 @@ public class AuthController {
         return "Test";
     }
 
-    @PostMapping("/login")
-    public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest loginRequest) {
+    @PostMapping
+    public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
         var loginResponse = authService.login(loginRequest);
-        return ResponseEntity.ok().body(loginResponse);
+        return new ResponseEntity<LoginResponse>(
+                loginResponse, HttpStatus.OK);
     }
 
     @PostMapping("/refreshToken")
-    public LoginResponse refreshToken(@RequestBody RefreshTokenRequest refreshTokenRequest){
+    public LoginResponse refreshToken(@RequestBody RefreshTokenRequest refreshTokenRequest) {
         return authService.refreshToken(refreshTokenRequest);
-    }
-
-    @PostMapping("/signup")
-    public void createUser(@RequestBody User user) {
-        authService.signUp(user);
     }
 }

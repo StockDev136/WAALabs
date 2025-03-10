@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -33,65 +34,41 @@ public class AuthService implements IAuthService {
 
     @Override
     public LoginResponse login(LoginRequest loginRequest) {
-        System.out.println(loginRequest.toString());
+        Authentication result = null;
         try {
-            var result = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(loginRequest.getEmail(),
-                            loginRequest.getPassword())
+            result = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword())
             );
         } catch (BadCredentialsException e) {
-            log.info("Bad Credentials");
+            throw new BadCredentialsException(e.getMessage());
         }
 
-        final UserDetails userDetails = userDetailsService
-                .loadUserByUsername(loginRequest.getEmail());
+        final UserDetails userDetails = userDetailsService.loadUserByUsername(result.getName());
 
         final String accessToken = jwtUtil.generateToken(userDetails);
         final String refreshToken = jwtUtil.generateRefreshToken(loginRequest.getEmail());
-        var loginResponse = new LoginResponse(accessToken, refreshToken);
-        return loginResponse;
+        return new LoginResponse(accessToken, refreshToken);
     }
 
     @Override
     public LoginResponse refreshToken(RefreshTokenRequest refreshTokenRequest) {
-        boolean isRefreshTokenValid = jwtUtil.validateToken(refreshTokenRequest.getRefreshToken());
-        if (isRefreshTokenValid) {
-            // TODO (check the expiration of the accessToken when request sent, if the is recent according to
-            //  issue Date, then accept the renewal)
-            var isAccessTokenExpired = jwtUtil.isTokenExpired(refreshTokenRequest.getAccessToken());
-            if(isAccessTokenExpired)
-                System.out.println("ACCESS TOKEN IS EXPIRED"); // TODO Renew is this case
-            else
-                System.out.println("ACCESS TOKEN IS NOT EXPIRED");
-            final String accessToken = jwtUtil.doGenerateToken(  jwtUtil.getSubject(refreshTokenRequest.getRefreshToken()));
-            var loginResponse = new LoginResponse(accessToken, refreshTokenRequest.getRefreshToken());
-            // TODO (OPTIONAL) When to renew the refresh token?
-            return loginResponse;
+        if (jwtUtil.validateToken(refreshTokenRequest.getRefreshToken()) && jwtUtil.isRefreshToken(refreshTokenRequest.getRefreshToken())) { //Added check for refresh token type
+            if (jwtUtil.isTokenExpired(refreshTokenRequest.getAccessToken())) {
+                final String accessToken = jwtUtil.doGenerateToken(jwtUtil.getSubject(refreshTokenRequest.getRefreshToken()));
+                return new LoginResponse(accessToken, refreshTokenRequest.getRefreshToken());
+            } else {
+                log.info("Access token is not expired.");
+                return new LoginResponse(refreshTokenRequest.getAccessToken(), refreshTokenRequest.getRefreshToken()); //Return the same tokens if access token is still valid.
+            }
+        } else {
+            log.warn("Invalid refresh token.");
+            return new LoginResponse(); // Or throw an exception
         }
-        return new LoginResponse();
     }
 
     @Override
-    public void signUp(User signUpRequest) {
-        log.info("Signing up user with email: {}", signUpRequest.getEmail());
+    public void signUp(User user) {
 
-        if (signUpRequest.getEmail() == null || signUpRequest.getEmail().isBlank()) {
-            throw new IllegalArgumentException("Email cannot be null or empty");
-        }
-        if (signUpRequest.getPassword() == null || signUpRequest.getPassword().isBlank()) {
-            throw new IllegalArgumentException("Password cannot be null or empty");
-        }
-
-        Role role = new Role();
-        role.setRole("Admin");
-        role.setId(1L);
-        User user = User.builder()
-                .name(signUpRequest.getName())
-                .email(signUpRequest.getEmail())
-                .password(passwordEncoder.encode(signUpRequest.getPassword()))
-                .roles(List.of(role))
-                .build();
-        userRepository.save(user);
     }
 
 }

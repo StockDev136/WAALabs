@@ -15,11 +15,12 @@ import java.util.function.Function;
 
 @Component
 public class JWTUtil {
-    public static final String SECRET = "secret-d30a0a76-9502-4303-ae37-8c967e8ce458";
+    //d30a0a76-9502-4303-ae37-8c967e8ce458
+    public static final String secret = "secret";
     public static final String TOKEN_PREFIX = "Bearer ";
     public static final String HEADER_STRING = "Authorization";
-    public static final long Expiration = 5 * 60 * 60 * 60;
-    public static final long RefreshExpiration = 10 * 60 * 60 * 60 * 60;
+    public static final long expiration = 5 * 60 * 60 * 60;
+    public static final long refreshExpiration = 10 * 60 * 60 * 60 * 60;
 
     private final UserDetailsService userDetailsService;
 
@@ -35,7 +36,7 @@ public class JWTUtil {
 
     private Claims getAllClaimsFromToken(String token) {
         return Jwts.parser()
-                .setSigningKey(SECRET)
+                .setSigningKey(secret)
                 .parseClaimsJws(token)
                 .getBody();
     }
@@ -53,54 +54,67 @@ public class JWTUtil {
         return expiration.before(new Date());
     }
 
-
-    public String generateToken(UserDetails userDetails) {
-        Map<String, Object> claims = new HashMap<>();
-        return doGenerateToken(claims, userDetails.getUsername());
-    }
-
-
-    public String doGenerateToken(Map<String, Object> claims, String subject) {
-        return Jwts.builder()
-                .setClaims(claims)
-                .setSubject(subject)
-                .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + Expiration))
-                .signWith(SignatureAlgorithm.HS512, SECRET)
-                .compact();
-    }
-
     // Overridden to accommodate the refresh token
-    public String doGenerateToken( String subject) {
+    public String doGenerateToken(String subject) {
         return Jwts.builder()
                 .setSubject(subject)
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + Expiration))
-                .signWith(SignatureAlgorithm.HS512, SECRET)
-                .compact();
-    }
-
-    public String generateRefreshToken(String email) {
-        return Jwts.builder()
-                .setSubject(email)
-                .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + RefreshExpiration))
-                .signWith(SignatureAlgorithm.HS512, SECRET)
+                .setExpiration(new Date(System.currentTimeMillis() + expiration))
+                .signWith(SignatureAlgorithm.HS512, secret)
                 .compact();
     }
 
     public String getSubject(String token) {
         return Jwts.parser()
-                .setSigningKey(SECRET)
+                .setSigningKey(secret)
                 .parseClaimsJws(token)
                 .getBody()
                 .getSubject();
     }
 
+    public String generateRefreshToken(String subject) {
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("type", "refresh"); // Add a "type" claim
+        return doGenerateToken(claims, subject);
+    }
+
+    public boolean isRefreshToken(String token){
+        try{
+            Claims claims = Jwts.parser().setSigningKey(secret).parseClaimsJws(token).getBody();
+            return "refresh".equals(claims.get("type"));
+        } catch(Exception e){
+            return false;
+        }
+    }
+
+    public String generateToken(UserDetails userDetails) {
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("type", "access"); // Add a "type" claim
+        return doGenerateToken(claims, userDetails.getUsername());
+    }
+
+    public boolean isAccessToken(String token){
+        try{
+            Claims claims = Jwts.parser().setSigningKey(secret).parseClaimsJws(token).getBody();
+            return "access".equals(claims.get("type"));
+        } catch(Exception e){
+            return false;
+        }
+    }
+
+    public String doGenerateToken(Map<String, Object> claims, String subject) {
+        return Jwts.builder()
+                .setClaims(claims)
+                .setSubject(subject)
+                .setIssuedAt(new Date(System.currentTimeMillis()))
+                .setExpiration(new Date(System.currentTimeMillis() + expiration * 1000))
+                .signWith(SignatureAlgorithm.HS512, secret).compact();
+    }
+
     public boolean validateToken(String token) {
         try {
             Jwts.parser()
-                    .setSigningKey(SECRET)
+                    .setSigningKey(secret)
                     .parseClaimsJws(token);
             return true;
         } catch (SignatureException e) {
@@ -117,34 +131,6 @@ public class JWTUtil {
         return false;
     }
 
-
-
-
-
-    public String doGenerateRefreshToken(Map<String, Object> claims, String subject) {
-
-        return Jwts.builder().setClaims(claims).setSubject(subject).setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + Expiration))
-                .signWith(SignatureAlgorithm.HS512, SECRET).compact();
-    }
-
-    public boolean isAccessToken(String token){
-        try{
-            Claims claims = Jwts.parser().setSigningKey(SECRET).parseClaimsJws(token).getBody();
-            return "access".equals(claims.get("type"));
-        } catch(Exception e){
-            return false;
-        }
-    }
-    public boolean isRefreshToken(String token){
-        try{
-            Claims claims = Jwts.parser().setSigningKey(SECRET).parseClaimsJws(token).getBody();
-            return "refresh".equals(claims.get("type"));
-        } catch(Exception e){
-            return false;
-        }
-    }
-
     public Authentication getAuthentication(String token) {
         if (!isAccessToken(token)) {
             return null; // or throw an exception indicating invalid token type
@@ -156,11 +142,19 @@ public class JWTUtil {
     }
 
 
+    public String doGenerateRefreshToken(Map<String, Object> claims, String subject) {
+
+        return Jwts.builder().setClaims(claims).setSubject(subject).setIssuedAt(new Date(System.currentTimeMillis()))
+                .setExpiration(new Date(System.currentTimeMillis() + expiration))
+                .signWith(SignatureAlgorithm.HS512, secret).compact();
+    }
+
+
     public String getUsernameFromToken(String token) {
         String result = null;
         try {
             result = Jwts.parser()
-                    .setSigningKey(SECRET)
+                    .setSigningKey(secret)
                     .parseClaimsJws(token)
                     .getBody()
                     .getSubject();

@@ -9,6 +9,8 @@ import com.waa.waaproject.repository.IUserRepository;
 import com.waa.waaproject.service.IUserService;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -27,6 +29,8 @@ public class UserService implements IUserService {
     @Autowired
     ListMapper listMapper;
 
+    PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+
 
     @Override
     public List<UserDto> findAll() {
@@ -41,6 +45,8 @@ public class UserService implements IUserService {
 
     @Override
     public void save(User user) {
+        String password = passwordEncoder.encode(user.getPassword());
+        user.setPassword(password);
         userRepository.save(modelMapper.map(user, User.class));
     }
 
